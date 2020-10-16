@@ -49,9 +49,9 @@ def get_dataset(tokenizer, split):
 
 def get_dataset_multi_choice(tokenizer, split):
     if split == 'train':
-        path = './data/train-small.jsonl'
+        path = './data/train-combine.jsonl'
     elif split == 'dev':
-        path = './data/dev-small.jsonl'
+        path = './data/dev-combine.jsonl'
 
     with jsonlines.open(path) as f:
         data_len = len(list(f))
