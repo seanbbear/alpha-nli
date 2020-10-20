@@ -95,7 +95,7 @@ def compute_accuracy(y_pred, y_target):
 def model_setting(model_name):
     if model_name=='bert':
         from transformers import AutoTokenizer, BertForSequenceClassification, BertConfig            
-        config = BertConfig.from_pretrained("bert-base-uncased",num_labels = 2)              
+        config = BertConfig.from_pretrained("bert-base-uncased")              
         tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")              
         model = BertForSequenceClassification.from_pretrained("bert-base-uncased") 
         return config, tokenizer, model
@@ -115,6 +115,19 @@ def model_setting(model_name):
         model = AlbertForMultipleChoice.from_pretrained("albert-base-v2")
         return config, tokenizer, model
 
+    elif model_name=='bert-multi-choice':
+        from transformers import AutoTokenizer, BertForMultipleChoice, BertConfig   
+        config = BertConfig.from_pretrained("bert-base-uncased")     
+        tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")     
+        model = BertForMultipleChoice.from_pretrained("bert-base-uncased")
+        return config, tokenizer, model
+    
+    elif model_name=='roberta-multi-choice':
+        from transformers import AutoTokenizer, RobertaForMultipleChoice, RobertaConfig
+        config = RobertaConfig.from_pretrained("roberta-base")
+        tokenizer = AutoTokenizer.from_pretrained("roberta-base")
+        model = RobertaForMultipleChoice.from_pretrained("roberta-base")
+        return config, tokenizer, model
 
 if __name__ == "__main__":
     config, tokenizer, model = model_setting('albert')

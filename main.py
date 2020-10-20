@@ -12,7 +12,7 @@ if __name__ == "__main__":
     # wandb專案名稱
     wandb.init(project="alpha-nli-classification")
 
-    config, tokenizer, model = model_setting('albert-multi-choice')
+    config, tokenizer, model = model_setting('bert-multi-choice')
    
     wandb.watch(model)
 
@@ -40,10 +40,10 @@ if __name__ == "__main__":
         {'params': [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)], 'weight_decay': 0.1},
         {'params': [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.1}
         ]
-    optimizer = AdamW(optimizer_grouped_parameters, lr=1e-6, eps=1e-8)
+    optimizer = AdamW(optimizer_grouped_parameters, lr=5e-6, eps=1e-8)
 
     model.zero_grad()
-    for epoch in tqdm(range(20)):
+    for epoch in range(10):
         train_loss = 0.0
         train_acc = 0.0
         model.train()
@@ -124,5 +124,6 @@ if __name__ == "__main__":
         wandb.log({"Test Acc":test_acc, "Test Loss":test_loss})
         
         torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'model.pt'))
-    model_to_save = model.module if hasattr(model, 'module') else model
-    model_to_save.save_pretrained('trained_model')
+
+        model_to_save = model.module if hasattr(model, 'module') else model
+        model_to_save.save_pretrained('bert_trained_model/epoch' + str(epoch))
