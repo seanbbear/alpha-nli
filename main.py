@@ -12,12 +12,13 @@ if __name__ == "__main__":
     # wandb專案名稱
     wandb.init(project="alpha-nli-classification")
 
-    config, tokenizer, model = model_setting('bert-multi-choice')
+    config, tokenizer, model = model_setting('roberta-multi-choice')
    
     wandb.watch(model)
 
     # setting device    
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    # device = torch.device('cpu')
     
     # 多GPU
     if  torch.cuda.device_count()>1:         
@@ -26,7 +27,8 @@ if __name__ == "__main__":
     print("using device",device)
     model.to(device)
     
-   
+    # 解決roberta缺少token_type_ids的問題
+    token_type_flag = False
     train_dataset = get_dataset_multi_choice(tokenizer=tokenizer, split='train')
     test_dataset = get_dataset_multi_choice(tokenizer=tokenizer, split='dev')
 
@@ -56,13 +58,12 @@ if __name__ == "__main__":
             # 
             input_ids = batch_dict[0].reshape(len(batch_dict[0]), 2, 512)
             attention_mask = batch_dict[1].reshape(len(batch_dict[1]), 2, 512)
-            token_type_ids = batch_dict[2].reshape(len(batch_dict[2]), 2, 512)
-            
+
+
             outputs = model(
-                input_ids,
-                attention_mask,
-                token_type_ids,
-                labels=batch_dict[3]
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                labels = batch_dict[2]
             )
             loss, logits = outputs[:2]
             
@@ -79,7 +80,7 @@ if __name__ == "__main__":
 
             # 計算accuracy
             # print('logits: ',logits)
-            acc_t = compute_accuracy(logits, batch_dict[3])
+            acc_t = compute_accuracy(logits, batch_dict[2])
             train_acc += (acc_t - train_acc) / (batch_index + 1)
 
             # log
@@ -98,13 +99,11 @@ if __name__ == "__main__":
             # 
             input_ids = batch_dict[0].reshape(len(batch_dict[0]), 2, 512)
             attention_mask = batch_dict[1].reshape(len(batch_dict[1]), 2, 512)
-            token_type_ids = batch_dict[2].reshape(len(batch_dict[2]), 2, 512)
             # 
             outputs = model(
-                input_ids,
-                attention_mask,
-                token_type_ids,
-                labels = batch_dict[3]
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                labels = batch_dict[2]
             )
             loss,logits = outputs[:2]
             if (device=='cuda' and device,torch.cuda.device_count()>1):                 
@@ -116,7 +115,7 @@ if __name__ == "__main__":
             test_loss += (loss_t - test_loss) / (batch_index + 1)
 
             # 計算accuracy
-            acc_t = compute_accuracy(logits, batch_dict[3])
+            acc_t = compute_accuracy(logits, batch_dict[2])
             test_acc += (acc_t - test_acc) / (batch_index + 1)
 
             # log
@@ -126,4 +125,4 @@ if __name__ == "__main__":
         torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'model.pt'))
 
         model_to_save = model.module if hasattr(model, 'module') else model
-        model_to_save.save_pretrained('bert_trained_model/epoch' + str(epoch))
+        model_to_save.save_pretrained('roberta_trained_model/epoch' + str(epoch))

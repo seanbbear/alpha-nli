@@ -1,2 +1,4 @@
 wandb/
 trained_model/
+bert_trained_model/
+roberta_trained_model/

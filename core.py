@@ -49,16 +49,15 @@ def get_dataset(tokenizer, split):
 
 def get_dataset_multi_choice(tokenizer, split):
     if split == 'train':
-        path = './data/train-combine.jsonl'
+        path = './data/train-small.jsonl'
     elif split == 'dev':
-        path = './data/dev-combine.jsonl'
+        path = './data/dev-small.jsonl'
 
     with jsonlines.open(path) as f:
         data_len = len(list(f))
     
     with jsonlines.open(path) as f:
-        input_ids = np.zeros(shape=(data_len,1024))     
-        token_type_ids = np.zeros(shape=(data_len,1024))     
+        input_ids = np.zeros(shape=(data_len,1024))      
         attention_mask = np.zeros(shape=(data_len,1024))     
         answer = []   
         
@@ -70,21 +69,18 @@ def get_dataset_multi_choice(tokenizer, split):
             # multi choice
             context = obj['obs1'] + obj['obs2']
             tensor_features = tokenizer( [context, context], [ obj['hyp1'], obj['hyp2'] ], return_tensors='np',padding='max_length')
-            
+
             input_ids[index] = tensor_features['input_ids'].reshape(1024)
-            token_type_ids[index] = tensor_features['token_type_ids'].reshape(1024)
-            attention_mask[index] = tensor_features['attention_mask'].reshape(1024)
+            attention_mask[index] = tensor_features['attention_mask'].reshape(1024)  
             answer.append(int(obj['label'])-1)
+        
             # label只能是0跟1 
-            
             index += 1
 
-        input_ids = torch.LongTensor(input_ids)     
-        token_type_ids = torch.LongTensor(token_type_ids)      
+        input_ids = torch.LongTensor(input_ids)
         attention_mask = torch.LongTensor(attention_mask)     
         answer = torch.LongTensor(answer) 
-    return TensorDataset(input_ids, token_type_ids, attention_mask, answer)
-
+    return TensorDataset(input_ids, attention_mask, answer)
 
 def compute_accuracy(y_pred, y_target):
     # 計算正確率
@@ -130,10 +126,10 @@ def model_setting(model_name):
         return config, tokenizer, model
 
 if __name__ == "__main__":
-    config, tokenizer, model = model_setting('albert')
+    config, tokenizer, model = model_setting('roberta-multi-choice')
     # train_dataset = get_dataset(name="boolq", tokenizer=tokenizer, split='train')
     # print(type(train_dataset))
-    get_dataset(tokenizer)
+    get_dataset_multi_choice(tokenizer, split='train')
     
     
 
